@@ -23,7 +23,6 @@ Introduzione all'idea dello stage.
 == Organizzazione del testo
 
 #set par(first-line-indent: 0pt)
-/ #link(<cap:descrizione-stage>)[Il terzo capitolo]: descrive.
 / #link(<cap:conclusioni>)[Il sesto capitolo]: descrive.
 
 Riguardo la stesura del testo, relativamente al documento sono state adottate le seguenti convenzioni tipografiche:

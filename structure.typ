@@ -14,7 +14,6 @@
 #include "./chapters/introduction.typ"
 #include "./chapters/preliminary.typ"
 #include "./chapters/original-contribution.typ"
-#include "./chapters/stage-description.typ"
 #include "./chapters/conclusion.typ"
 
 // // Appendix

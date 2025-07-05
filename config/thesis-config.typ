@@ -24,7 +24,7 @@
     //show par: set block(spacing: 0.55em)
     set par(spacing: 0.55em)
     show heading: set block(above: 1.4em, below: 1em)
-
+    show figure: set block(breakable: true)
 
     show heading.where(level: 1): it => {
         stack(
