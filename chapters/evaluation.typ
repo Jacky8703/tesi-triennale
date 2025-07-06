@@ -163,7 +163,7 @@ In questa sezione vengono confrontati i modelli di _Bedrock_ e _Data Automation_
 #set par(justify: true)
 \
 === Valutazione immagini
-Sono state scelte nove immagini rappresentanti vari contenuti salvati in azienda (persone, oggetti, pubblicità, mostre ecc.) di ambiti differenti, caricate su _S3_ e usate come _input_ sia per i modelli, sia per il servizio _Data Automation_. \ 
+Sono state scelte nove immagini rappresentanti vari contenuti appartenenti all'azienda (persone, oggetti, pubblicità, mostre ecc.) di ambiti differenti, caricate su _S3_ e usate come _input_ sia per i modelli, sia per il servizio _Data Automation_. \ 
 \
 Nel caso dei modelli è stato utilizzato ognuno (Claude Sonnet 3.7, Nova Pro, Pixtral Large), per ogni immagine, per ogni tipologia di _output_ (alt, _keyword_, descrizione) e per ogni lingua (italiano, inglese). \ Per _Data Automation_ invece è bastato utilizzare l'API una volta per ogni immagine e per ogni lingua, dato che all’interno di un singolo risultato sono presenti tutte e tre le tipologie di _output_.  \ I risultati sono stati poi salvati su file .ndjson separati. \
 \
@@ -297,7 +297,7 @@ Premesse:
     [Tempio medio (secondi)], [4], [2], [2], [22],
     [Lunghezza media descrizione (parole)], [103], [60], [84], [54],
   ),
-  caption: [Analisi risultati immagini.]
+  caption: [Tabella analisi risultati immagini.]
 )
 \
 Da questa analisi è chiaro come il servizio meno costoso è _Data Automation_ insieme a Nova Pro e le descrizioni più lunghe sono state generate dai modelli Claude Sonnet 3.7 e Pixtral Large.
@@ -328,7 +328,138 @@ cui scegliere in modo che siano più coerenti (anche in vista di un potenziale f
 un’immagine.
 
 === Valutazione video <video-evaluation>
+Come nella valutazione delle immagini, sono stati scelti alcuni video appartenenti all'azienda, di lunghezza diversa e relativi ad ambiti differenti, caricati su _S3_ e usati come _input_ sia per Nova Pro che per il servizio _Data Automation_. Si è deciso di valutare solamente la lista di _keyword_ generate a partire dal video, quindi non è stato richiesto ai servizi di produrre un attributo alt o una descrizione. \
+\
+Nova Pro è stato l’unico modello di Bedrock utilizzato per la valutazione poiché offre la funzionalità _video-to-text_, essenziale per il caso d’uso. Il modello è stato utilizzato per generare la lista di _keyword_ in italiano e in inglese.\ _Data Automation_ invece ha avuto qualche problema nella gestione dei video, e il risultato ottenuto si limita alla lista di _keyword_ in inglese, solo per i video più corti. \
+I risultati sono stati salvati su file _.ndjson_ separati, aventi le stesse strutture usate precedentemente, dato che l’_output_ è un
+sottoinsieme di quello generato per le immagini. \
+\
+*Problemi Bedrock Data Automation con video input*
+\
+I problemi riscontrati con il servizio Bedrock Data Automation sono stati: \
+\
+- *Job "_InProgress_"* → utilizzando il _project_, come avevo fatto con le immagini, lo stato del _job_ è rimasto "_InProgress_" #footnote[https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/bedrockdataautomationruntime@v1.3.0/types#AutomationJobStatus (ultima visita 06/07/2025)] (Created → InProgress → Success, ServiceError/ClientError) per un paio d’ore prima di restituire \"_internal service error_\". Come prima cosa ho ricontrollato i prerequisiti @bda-prerequisites per l’utilizzo di _Data Automation_ e il video dato in _input_ rientrava nei limiti (18.2 MB, 11 secondi, MP4 con H.264 Codecs), poi ho ricontrollato il codice, in particolare che gli identificatori delle risorse (ARN) fossero corretti, e ho abilitato le notifiche su _EventBridge_ in modo da notare se qualche evento particolare venisse generato. Ho anche provato con un formato video diverso (MOV) ma nulla di tutto ciò è servito a risolvere il problema. \ Infine ho cambiato il codice e al posto di utilizzare il _project_, ho dato in _input_ direttamente la _blueprint custom_ che avevo creato per analizzare i video e in questo modo il _job_ ha terminato con stato "_Success_" e l’evento è arrivato nella coda _SQS_. Ovviamente utilizzando la _blueprint_ direttamente si perdono i vantaggi del _project_ come lo _standard output_ e il _routing_ manuale di come vengono processati i file in _input_;
+\
+- *Lingua* → _Data Automation_ con i video genera la lista di _keyword_ in inglese, nonostante aver specificato che devono essere in italiano nelle istruzioni della _blueprint_. Ho anche provato a riscrivere le istruzioni in italiano, ma il massimo che ha generato sono state alcune _keyword_ in italiano (non corretto) e altre rimaste in inglese. \ I tentativi fatti sono stati: 
+  - \"The output must only have the keyword in italian, not in other languages.\";
+  - \"Provide the output results in Italian only. Do not use any other languages.\";
+  - \"After extracting the keywords, translate them into Italian.\";
+\
+- *Lunghezza video* → nonostante nei prerequisiti @bda-prerequisites di _Data Automation_ sia esplicitato come la massima lunghezza dei video possa essere di 120 minuti, il _job_ non termina con video lunghi 13/14 minuti (rimane “_InProgress_” per circa 40 minuti prima di restituire \"_internal service error_\"). Ho provato a comprimerli, anche se non necessario, al 60% e al 25% ma in entrambi i casi il _job_ non ha terminato. \ All’interno della console di _Data Automation_, se si dà in _input_ un video lungo, viene estratto automaticamente un segmento di almeno 5 minuti, in modo da diminuire il carico da processare. Allora ho provato con un video da 13 minuti segmentato e dopo 40 minuti di attesa la console ha restituito l’errore \"_Unable to generate result, please try again later  _\". Stesso tentativo lo ho fatto tramite _API_, specificando il segmento da processare, e il finale è stato il medesimo.
+
 ==== Risultati
+Dato che _Data Automation_ è riuscito a generare risultati soltanto in inglese per 8 video su 10, la valutazione si è basata sul
+confronto di questi anche per Nova Pro. \
+_Data Automation_ si è rilevato migliore nel compito di generare una lista di _keyword_ a partire da un video (5/8 valutate in modo soggettivo), ma rimangono alcune considerazioni da fare dopo l’analisi.
+
 ==== Analisi
+Premesse: 
+- i tempi mostrati nella tabella sottostante sono quelli di durata dei video e risposta dei servizi in secondi;
+- riguardo i costi, sono riportati quelli relativi a Nova Pro (approssimativi) in centesimi di dollaro, e quelli di _Data Automation_, il quale ha un costo costante di \$0.084/min (quindi 8.4/min per confronto, mi baso sul fatto che se il video dura meno di un minuto il costo rimane quello del minuto intero).
+\
+#pad(left: -1in, right: -1in)[
+  #figure(
+    table(
+      columns: (auto, auto, auto, auto, auto, auto),
+      align: left,
+      table.header(
+        [*Video*], [*Durata*], [*Risposta \ Nova*], [*Risposta \ BDA*], [*Costo \ Nova*], [*Costo \ BDA*]
+      ),
+      [4k_bag], [11], [5.3], [43], [0.3], [8.4],
+      [video_24SWTK67], [12], [2.8], [33], [0.35], [8.4],
+      [video_ceramic], [15], [3.1], [39], [0.4], [8.4],
+      [video_ceramic1], [15], [3.2], [38], [0.4], [8.4],
+      [lipoil_1x1_sito], [15], [4], [40], [0.4], [8.4],
+      [Video marmo campagna], [24], [4.6], [43], [0.6], [8.4],
+      [4k_hand_cream], [47], [16], [73], [1.25], [8.4],
+      [Camomilla_Franchising #footnote[in questo video i 3 minuti finali sono statici, rimane fisso su una scritta (per questo lo ho tagliato)]\ (tagliato)], [176 \ (2.56 min)], [25], [68], [4.7], [25.2],
+      [Camomilla_Franchising (Completo)], [352 \ (5.52 min)], [23], [62], [4.7], [50.4],
+      [The BEST Beauty Products], [781 \ (13.01 min)], [70], [Errore], [21], [109.2 (\$1.09)],
+      [videoplayback], [824 \ (13.44 min)], [65], [Errore], [22], [117.6 (\$1.18)]
+    ),
+    caption: [Tabella analisi risultati video.]
+  )
+]
+\
+#align(center)[*Tempistiche risultati video*]
+#figure(
+  cetz.canvas({
+    import cetz.draw: *
+    import cetz-plot: plot
+
+    let xlabels = (
+        (1, [12s]),
+        (2, [15s]),
+        (3, [15s]),
+        (4, [15s]),
+        (5, [24s]),
+        (6, [47s]),
+        (7, [176s]),
+        (8, [352s]),
+        (9, [781s]),
+        (10, [824s]),
+    )
+    let ylabels = (
+      (8, [8s]),
+      (16, [16s]),
+      (24, [24s]),
+      (32, [32s]),
+      (40, [40s]),
+      (48, [48s]),
+      (56, [56s]),
+      (64, [64s]),
+      (72, [72s]),
+    )
+
+    plot.plot(
+      size: (11, 6),
+      axis-style: "left",
+      x-label: [*Durata*],
+      y-label: [*Risposta*],
+      x-tick-step: none,
+      y-tick-step: none,
+      x-ticks: xlabels,
+      y-ticks: ylabels,
+      x-min: 0.5,
+      x-max: 10.5,
+      y-min: 0,
+      legend: (0, -0.8),
+      y-grid: true,
+      {
+        plot.add(
+          ((1, 2.8), (2, 3.1), (3, 3.2), (4, 4), (5, 4.6), (6, 16), (7, 25), (8, 23), (9, 70), (10, 65)),
+          mark: "o",
+          line: "spline",
+          label: [Nova]
+        )
+        plot.add(
+          ((1, 33), (2, 39), (3, 38), (4, 40), (5, 43), (6, 73), (7, 68), (8, 62)),
+          mark: "o",
+          line: "spline",
+          label: [BDA]
+        )
+      }
+    )
+  }),
+  caption: [Grafico tempistiche risultati video.]
+)
+\
+La tabella mostra come _Bedrock Data Automation_ è molto più costoso rispetto a Nova Pro (5x circa, per i video lunghi), e anche come tempi di risposta è molto più lento → _Data Automation_ ha generato la risposta ad un video da 47 secondi in 73 secondi, mentre Nova Pro nello stesso tempo (70 secondi) ha generato la risposta al video da 13 minuti (\"The BEST Beauty Products\"). \
+\
+In generale, come si nota dal grafico, le tempistiche non mostrano un qualche tipo di relazione chiara, quindi non si può dedurre con precisione i tempi di risposta per un determinato video. Sicuramente, anche con questi poche prove, è ovvio come Nova Pro sia più veloce a generare la risposta rispetto a _Data Automation_.
+
 ==== Considerazioni
+- *Nova Pro*:
+  - è stato in grado di generare l’attributo richiesto per tutti i video, in tempi più che ragionevoli;
+  - ha un costo insignificante rispetto a _Data Automation_;
+  - è molto versatile e affidabile → accetta molte tipologie di file video #footnote[https://docs.aws.amazon.com/nova/latest/userguide/complete-request-schema.html \ (ultima visita 06/07/2025)] e si possono fornire in _input_ anche da locale, senza l’utilizzo di _S3_;
+  - nella valutazione soggettiva dei risultati è stato penalizzato perché forniva _keyword_ troppo generali → cambiando _prompt_ e parametri si può sicuramente migliorare, basta scegliere una preferenza: _keyword_ più specifiche e precise, con il rischio di allucinazioni, oppure più generali e affidabili, ma che colgono meno dettagli particolari del video;
+- *Data Automation*:
+  - ha generato _keyword_ adatte al contesto del video e con particolari utili in ottica di utilizzo per la ricerca;
+  - ha un costo \"elevato\" rispetto a Nova Pro e i tempi di risposta sono significativamente maggiori;
+  - ha dei limiti sulle tipologie di file video in _input_ (MP4/MOV);
+  - attualmente ha alcuni problemi con i video che non sono riuscito a risolvere, come la questione della lingua (non genera/traduce risultati nella lingua specificata) e il limite di durata dei video (fino a 6 minuti sembra funzi  onare, ma con più di 13 va in errore, anche da console).
+\
+Come per le immagini, le _keyword_ relative allo stile e all’angolazione non le ho trovate utili per valutare un risultato rispetto ad un
+altro.
 \
