@@ -1,3 +1,6 @@
+#import "@preview/cetz:0.4.0"
+#import "@preview/cetz-plot:0.1.2"
+
 == Valutazione
 Una volta scelti i servizi per la valutazione, ho implementato una _Command Line Interface (CLI)_ per ottenere i risultati (attributi) dei tre modelli scelti e di _Bedrock Data Automation_ e salvarli in locale. Dopo aver utilizzato i servizi, sono stato in grado di confrontare le loro caratteristiche e i loro problemi, aspetto importante per la scelta finale del servizio migliore. Infine mi sono concentrato sui risultati ottenuti, comparando ciò che i modelli hanno generato con l'_output_ di _Bedrock Data Automation_, prima di decidere con quale servizio implementare l'_API_ finale.
 
@@ -51,13 +54,13 @@ Esempio di singolo risultato JSON:
     "s3_time": "tempo per ottenere il contenuto da S3",
     "results": [
         {
-          "model": "ID del modello utilizzato",
-          "description": "output del modello",
-          "stop_reason": "motivo stop della generazione",
-          "input_tokens": "numero di token in input",
-          "output_tokens": "numero di token in output",
-          "response_time": "tempo di risposta del modello",
-          "approximately_cost": "costo approssimativo chiamata API"
+            "model": "ID del modello utilizzato",
+            "description": "output del modello",
+            "stop_reason": "motivo stop della generazione",
+            "input_tokens": "numero di token in input",
+            "output_tokens": "numero di token in output",
+            "response_time": "tempo di risposta del modello",
+            "approximately_cost": "costo approssimativo chiamata API"
         },
     ]
 }
@@ -85,7 +88,7 @@ Esempio di singolo risultato JSON:
 ```
 \
 === Confronto servizi
-In questa sezione vengono confrontati i modelli di _Bedrock_ e _Data Automation_, in base alle loro caratteristiche, al loro utilizzo, ai problemi riscontrati e alle decisioni prese per far fronte a questi problemi. L'idea è quella di fornire una visione d'insieme dei servizi prima di valutare i risultati ottenuti. \
+In questa sezione vengono confrontati i modelli di _Bedrock_ e _Data Automation_, in base ai loro vantaggi, ai loro limiti, ai problemi riscontrati e alle decisioni prese per far fronte a questi problemi. L'idea è quella di fornire una visione d'insieme dei servizi prima di valutare i risultati ottenuti. \
 \
 #set par(justify: false)
 #pad(left: -1in, right: -1in)[
@@ -123,21 +126,21 @@ In questa sezione vengono confrontati i modelli di _Bedrock_ e _Data Automation_
         - collegamento a _S3_ → contenuti in locale non utilizzabili
         - _standard output_ → non sempre sufficiente a seconda del caso d'uso
         - costi fissi per _input_ → non c'è la possibilità di pagare di meno/più per risultati meno/più precisi
-        - riconoscimento automatico → non sempre corretto, ad esempio un file PNG può essere visto come documento o come immagine → possibilità di esplicitare come processare (immagine/documento) certe tipologie di file #footnote[https://docs.aws.amazon.com/bedrock/latest/userguide/bda-routing-enablement.html (ultima visita 05/07/2025)], solamente se si utilizza un _project_ #footnote[https://docs.aws.amazon.com/bedrock/latest/userguide/bda-projects.html (ultima visita 05/07/2025)]
+        - riconoscimento automatico → non sempre corretto, ad esempio un file PNG può essere visto come documento o come immagine → possibilità di esplicitare come processare (immagine/documento) certe tipologie di file #footnote[https://docs.aws.amazon.com/bedrock/latest/userguide/bda-routing-enablement.html (ultima visita 05/07/2025)], solamente se si utilizza un _project_ #footnote[https://docs.aws.amazon.com/bedrock/latest/userguide/bda-projects.html (ultima visita 05/07/2025)] <bda-project-footnote>
       ],
       [*Problemi*],
       [
-        - utilizzo di _InvokeModel API_ (scelta fatta inizialmente) → necessità di molto codice ausiliario dovuto a strutture di richiesta/risposta diverse per ogni modello
-        - _Bedrock_ attualmente non offre alcuni dei modelli più forti sul mercato (_GPT_, _Gemini_) e alcuni sono disponibili solo in regioni specifiche (Stati Uniti)
+        - utilizzo di _InvokeModel API_ (scelta fatta inizialmente) → necessità di molto codice ausiliario dovuto a strutture di richiesta e risposta diverse per ogni modello
+        - _Bedrock_ attualmente (13/06/2025) non offre alcuni dei modelli più forti sul mercato (_GPT_, _Gemini_) e alcuni sono disponibili solo in regioni specifiche (Stati Uniti)
         - Nova Pro unico modello attualmente (13/06/2025) disponibile in Europa che offre funzionalità _video-to-text_, quindi che accetta video in _input_ e genera testo
         - relativo al caso d'uso, pochi modelli (se non solo quelli di Amazon) accettano in _input_ l'identificativo (URI) diretto del contenuto salvato su _S3_
       ],
       [
         - le istruzioni fornite all'interno della _blueprint_ per il _custom output_ hanno un limite di lunghezza → non si può essere il più specifici possibile
-        - se si utilizza un _project_, lo _standard output_ viene sempre generato #footnote[https://docs.aws.amazon.com/bedrock/latest/userguide/bda-projects.html, "A project configured to generate custom output will also generate standard output automatically." \ (ultima visita 05/07/2025)] (in inglese), nonostante l'unico interesse sia in quello _custom_
+        - se si utilizza un _project_, lo _standard output_ viene sempre generato @bda-project-footnote (in inglese), nonostante l'unico interesse sia in quello _custom_
         - l'unico modo per specificare la lingua in _output_ è cambiare le istruzioni della _blueprint_ tramite _API_ o console (la _blueprint_ rimane uguale all'ultima modifica fatta), senza costi ma comporta un tempo di attesa
         - supporta solo PNG/JPEG #footnote[https://docs.aws.amazon.com/bedrock/latest/userguide/bda-limits.html \ (ultima visita 05/07/2025)] <bda-prerequisites> come formati per le immagini, e MP4/MOV @bda-prerequisites per i video
-        - alcuni problemi riscontrati con i video, spiegati nella @video-evaluation
+        //- alcuni problemi riscontrati con i video, spiegati nella @video-evaluation
         - il servizio attualmente (20/06/2025) è disponibile solo negli Stati Uniti
       ],
       [*Decisioni*],
@@ -154,15 +157,175 @@ In questa sezione vengono confrontati i modelli di _Bedrock_ e _Data Automation_
         - immagini e video vengono ricavati da _S3_ (N. Virginia) e viene utilizzato il servizio in N. Virginia
       ]
     ),
-    caption: [Confronto servizi]
+    caption: [Confronto servizi.]
   ) <service-comparison-table>
 ]
 #set par(justify: true)
-
+\
 === Valutazione immagini
+Sono state scelte nove immagini rappresentanti vari contenuti salvati in azienda (persone, oggetti, pubblicità, mostre ecc.) di ambiti differenti, caricate su _S3_ e usate come _input_ sia per i modelli, sia per il servizio _Data Automation_. \ 
+\
+Nel caso dei modelli è stato utilizzato ognuno (Claude Sonnet 3.7, Nova Pro, Pixtral Large), per ogni immagine, per ogni tipologia di _output_ (alt, _keyword_, descrizione) e per ogni lingua (italiano, inglese). \ Per _Data Automation_ invece è bastato utilizzare l'API una volta per ogni immagine e per ogni lingua, dato che all’interno di un singolo risultato sono presenti tutte e tre le tipologie di _output_.  \ I risultati sono stati poi salvati su file .ndjson separati. \
+\
+Una volta ottenuti tutti i risultati ho utilizzato la funzione per analizzare i dati e avere una stima sul costo medio, sul tempo medio e sulla lunghezza media della descrizione generata (solo sulla descrizione dato che l’alt deve essere corto come _best practice_ e le _keyword_ devono essere 10). \
+\
+Successivamente ho valutato in modo soggettivo i risultati ottenuti, confrontando l’_output_ generato da ogni modello e da _Data Automation_ per ogni attributo. Solo nel caso di indecisione mi sono basato anche sul costo o tempo della richiesta. Ho assegnato
+un punto per ogni attributo in ogni lingua e ho riportato aspetti particolari o caratteristiche che notavo nelle risposte. \
+\
+Per la valutazione degli attributi mi sono basato su questi aspetti:
+- alt → ho controllato quale fosse il più conciso e descrittivo, magari che utilizzasse alcune parole chiave collegabili all'immagine (per motivi di SEO);
+- _keyword_ → ho pensato principalmente alla ricerca, quindi valutando quali parole fossero utili per ritrovare quel contenuto, e a quanto erano generali;
+- descrizione → ho guardato quale fosse la più generale e completa, senza errori e che non sembrasse palesemente generata da un modello. Inoltre ho penalizzato le descrizioni troppo lunghe, con tanti dettagli e con una struttura della frase non comune.
+
 ==== Risultati
+La valutazione soggettiva è stata fatta una prima volta con un _top-P_ alto (0.9) e una seconda volta con un _top-P_ basso (0.3). \ Dopo alcune prove con _top-P_ a 0.3, ho notato come i risultati dei modelli Claude Sonnet 3.7 e Pixtral Large non cambiassero in modo significativo, mentre Nova Pro sembrava modificare il lessico e semplificare le _keyword_, quindi ho deciso di rivalutare solamente i risultati di quest'ulti mo e confrontarli con quelli della prima valutazione. \
+\
+I punteggi finali ottenuti sono: \
+\
+#figure(
+  table(
+    columns: (auto, auto, auto, auto, auto),
+    align: left,
+    table.header(
+      [*2° (top-P = 0.3*)], [*Claude*], [*Nova*], [*Pixtral*], [*BDA*]
+    ),
+    [Alt], [7], [4], [6], [1],
+    [Keyword], [8], [3], [2], [5],
+    [Descrizione], [2], [2], [8], [6],
+    [*Totale*], [*17*], [*9*], [*16*], [*12*]
+  ),
+  caption: [Tabella punteggi servizi immagini (top-P = 0.9).]
+)
+\
+#figure(
+  cetz.canvas({
+    import cetz.draw: *
+    import cetz-plot: chart
+    
+    chart.columnchart(
+      (
+        ([*Claude*], 7, 8, 2),
+        ([*Nova*], 4, 3, 2),
+        ([*Pixtral*], 6, 2, 8),
+        ([*BDA*], 1, 5, 6),
+      ),
+      label-key: 0,
+      value-key: (1, 2, 3),
+      mode: "clustered",
+      size: (11, 6),
+      y-label: [Punteggio],
+      y-tick-step: 1,
+      labels: ([Alt], [Keyword], [Descrizione]),
+      legend: (0, -0.6),
+      bar-style: i => (
+        fill: (
+          if i == 0 { rgb("2196f3") }      // Alt
+          else if i == 1 { rgb("4caf50") } // Keyword
+          else { rgb("ff9800") }           // Description
+        )
+      )
+    )
+  }),
+  caption: [Grafico punteggi servizi immagini (top-P = 0.9).]
+)
+\
+#figure(
+  table(
+    columns: (auto, auto, auto, auto, auto),
+    align: left,
+    table.header(
+      [*2° (top-P = 0.3*)], [*Claude*], [*Nova*], [*Pixtral*], [*BDA*]
+    ),
+    [Alt], [8], [3], [7], [0],
+    [Keyword], [9], [3], [4], [2],
+    [Descrizione], [3], [1], [7], [7],
+    [*Totale*], [*20*], [*7*], [*18*], [*9*]
+  ),
+  caption: [Tabella punteggi servizi immagini (top-P = 0.3).]
+)
+\
+#figure(
+  cetz.canvas({
+    import cetz.draw: *
+    import cetz-plot: chart
+    
+    chart.columnchart(
+      (
+        ([*Claude*], 8, 9, 3),
+        ([*Nova*], 3, 3, 1),
+        ([*Pixtral*], 7, 4, 7),
+        ([*BDA*], 0, 2, 7),
+      ),
+      label-key: 0,
+      value-key: (1, 2, 3),
+      mode: "clustered",
+      size: (11, 6),
+      y-label: [Punteggio],
+      y-tick-step: 1,
+      labels: ([Alt], [Keyword], [Descrizione]),
+      legend: (0, -0.6),
+      bar-style: i => (
+        fill: (
+          if i == 0 { rgb("2196f3") }      // Alt
+          else if i == 1 { rgb("4caf50") } // Keyword
+          else { rgb("ff9800") }           // Description
+        )
+      )
+    )
+  }),
+  caption: [Grafico punteggi servizi immagini (top-P = 0.3).]
+)
+\
+Come si può notare i punteggi sono soggettivi (dalla prima valutazione alla seconda ho cambiato solo i risultati di Nova Pro, tuttavia gli altri punteggi sono variati più di 9-7=2 punti), ma comunque si possono notare degli aspetti in comune: Claude 3.7 Sonnet sembra essere il migliore, specialmente nel ricavare _keyword_ e nel generare l’alt (dove anche Pixtral Large si è rilevato buono); riguardo le descrizioni invece Pixtral Large e _Data Automation_ hanno ottenuto i punteggi più elevati; Nova Pro d’altra parte è sempre stato valutato come il peggiore, nonostante abbia ottenuto qualche punto nel generare l’alt e le _keyword_.
+
 ==== Analisi
+Premesse: 
+- il tempo medio per ottenere la risposta di _Bedrock Data Automation_ è abbastanza elevato (22 secondi), è importante però ricordare che il servizio viene eseguito negli Stati Uniti e che i suoi risultati vengono caricati automaticamente su _S3_;
+- ai tempi medi dei modelli c'è da sommare anche il tempo medio per ottenere il contenuto da _S3_ (mezzo secondo) nel caso di Claude e Pixtral (Nova lo ricava autonomamente);
+- per il costo medio c'è da tenere conto che con una singola chiamata di _Data Automation_ si ottengono tutti e tre gli attributi richiesti, mentre per i modelli sono state fatte tre chiamate differenti;
+- le chiamate fatte a Nova Pro sono molte più degli altri modelli perché è stato utilizzato come modello di prova, essendo quello che costa meno.
+\
+#figure(
+  table(
+    columns: (auto, auto, auto, auto, auto),
+    align: left,
+    table.header(
+      [], [*Claude*], [*Nova*], [*Pixtral*], [*BDA*]
+    ),
+    [Chiamate API], [70], [113], [69], [22],
+    [Costo medio (centesimi di dollaro)], [0.5], [0.2], [0.65], [0.5],
+    [Tempio medio (secondi)], [4], [2], [2], [22],
+    [Lunghezza media descrizione (parole)], [103], [60], [84], [54],
+  ),
+  caption: [Analisi risultati immagini.]
+)
+\
+Da questa analisi è chiaro come il servizio meno costoso è _Data Automation_ insieme a Nova Pro e le descrizioni più lunghe sono state generate dai modelli Claude Sonnet 3.7 e Pixtral Large.
+
 ==== Considerazioni
+- *Claude 3.7 Sonnet*:
+  - migliore quando si tratta di intuire oggetti o scritte non complete, nonostante i parametri lo limitino in ciò;
+  - solitamente non si sbilancia nell'identificare il sesso o la nazionalità (difetto);
+  - descrizioni troppo lunghe e precise (risolvibile modificando il _prompt_);
+- *Nova Pro*:
+  - molto economico e veloce;
+  - solitamente identifica il sesso di una persona;
+  - risposte meno precise degli altri modelli, rimane fin troppo generale;
+  - nelle descrizioni non sempre le frasi sono collegate in maniera naturale;
+- *Pixtral Large*:
+  - riesce a generalizzare bene stando preciso nei dettagli, ottima via di mezzo nelle descrizioni (è stato l’unico a riportare alcune scritte);
+  - solitamente identifica il sesso di una persona;
+  - utilizza una struttura della frase comune;
+  - ogni tanto genera testo formattato (_markdown_);
+  - non sono convinto che possa accettare in _input_ i parametri #footnote[https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-mistral-pixtral-large.html#awsui-tabs-:r2v:-request-0-panel (ultima visita 06/07/2025)], quindi temperatura e top-P non modificano il risultato;
+- *Data Automation*:
+  - riesce a generalizzare bene nelle descrizioni, ma ipotizza molto (nonostante le informazioni siano presenti nell’immagine);
+  - alt solitamente troppo corto e poco informativo;
+  - _keyword_ troppo specifiche e solitamente si limita ad una singola parola.
+\
+In generale le _keyword_ relative allo stile e all'angolazione non le ho trovate troppo utili, servirebbe avere una lista predefinita da
+cui scegliere in modo che siano più coerenti (anche in vista di un potenziale filtro), oppure sostituirle con altri aspetti di
+un’immagine.
 
 === Valutazione video <video-evaluation>
 ==== Risultati
