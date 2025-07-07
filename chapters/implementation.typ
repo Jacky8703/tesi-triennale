@@ -30,7 +30,7 @@ Nell'_application logic_ è stato implementato il _controller_ che definisce le 
 La validazione dei dati in _input_ avviene grazie a _Gin_, che permette di definire le regole di validazione (_binding tags_) direttamente nelle strutture dei dati utilizzate per le richieste (_DTO_).
 
 === Business Logic
-La _business logic_ è la parte principale dell'_API_, in cui viene implementata la logica di generazione degli attributi. Per ogni richiesta viene ricavato il contenuto da elaborare (se necessario) tramite il _client_ di _S3_, e viene utilizzato il _client_ di _Bedrock_ per generare l'attributo richiesto con il modello selezionato. Infine, viene passato il risultato al _DAL_ (_Data Access Layer_) associato per salvare l'attributo generato nel database. \ Data la limitata complessità di questo servizio, ho implementato un unico _service_ che possiede i metodi per generare gli attributi richiesti e per ricavare i risultati salvati.
+La _business logic_ è la parte principale dell'_API_, in cui viene implementata la logica di generazione degli attributi. Per ogni richiesta viene ricavato il contenuto da elaborare (se necessario) tramite il _client_ di _S3_, e viene utilizzato il _client_ di _Bedrock_ per generare l'attributo richiesto con il modello selezionato. Infine, viene passato il risultato al _dal_ (_data access layer_) associato per salvare l'attributo generato nel database. \ Data la limitata complessità di questo servizio, ho implementato un unico _service_ che possiede i metodi per generare gli attributi richiesti e per ricavare i risultati salvati.
 
 === Persistence Logic
 La _persistence logic_ si occupa di salvare gli attributi generati insieme ad altri metadati nel database ed estrarli quando richiesto. Come database è stato scelto _DynamoDB_, data la sua semplicità di utilizzo e la sua integrazione con i servizi AWS (non necessaria in questo progetto, ma utile per una futura implementazione da parte dell'azienda). \ 
@@ -42,7 +42,7 @@ In _DynamoDB_ ogni _record_ deve avere una chiave primaria univoca, e sono dispo
 \
 Per il progetto è stato scelto di utilizzare una chiave primaria composta, in modo da poter salvare più attributi per lo stesso file e per filtrarli in base al tipo di attributo e alla lingua. Nello specifico, la _partition key_ è il nome del file (_filename_) e la _sort key_ è una combinazione del tipo di attributo, della lingua e del modello (_attributeCode\_locale\_model_). \
 \
-Il _DAL_ implementa tre metodi:
+Il _dal_ implementa tre metodi:
 - _SaveAttributeToDB_ → per salvare un'istanza di _AttributeDao_ su _DynamoDB_.
 ```go
     type AttributeDao struct {

@@ -19,7 +19,7 @@ Nella parte di _application logic_ è stato implementato il _parsing_ e la valid
 Le _flag_ utilizzate sono:
 - *_VLM_*
   - \-_uri_, per specificare l'identificativo (URI) del file immagine o video salvato su _S3_;
-  - \-_mod_, per specificare il modello da utilizzare per la generazione degli attributi, "cl" per Claude Sonnet 3.7, "nova" per Nova Pro, "pix" per Pixtral Large e "all" per tutti e tre i modelli. A seconda del modello scelto, viene selezionato l'ID del modello da utilizzare per la chiamata _API_ ed il suo costo per _token_ di _input_ e _output_ #footnote[https://aws.amazon.com/bedrock/pricing/ (ultima visita 05/07/2025)]\;
+  - \-_mod_, per specificare il modello da utilizzare per la generazione degli attributi, "cl" per Claude Sonnet 3.7, "nova" per Nova Pro, "pix" per Pixtral Large e "all" per tutti e tre i modelli. A seconda del modello scelto, viene selezionato l'ID per la chiamata _API_ ed il suo costo per _token_ di _input_ e _output_ #footnote[https://aws.amazon.com/bedrock/pricing/ (ultima visita 05/07/2025)]\;
   - \-_out_, per specificare il tipo di attributo da generare, "alt" per il testo alternativo, "key" per la lista di _keyword_ e "desc" per la descrizione #footnote[non c'era ancora l'opzione di generare tutti e tre gli attributi]. A seconda della tipologia di attributo da generare, viene selezionato il ruolo e il _prompt_ da utilizzare per la chiamata _API_;
   - \-_lan_, per specificare la lingua dell'_output_, "it" per l'italiano e "en" per l'inglese. A seconda della lingua scelta, viene aggiunta alla fine del _prompt_ la specifica della lingua;
 - *_Data Automation_*
@@ -32,7 +32,7 @@ All'interno della _business logic_ sono state implementate tutte le funzioni pri
 - _ConverseModel_: funzione che va a chiamare l'_API_ di _Bedrock_ con l'ID del modello scelto, i parametri, il ruolo, il _prompt_ ed il contenuto da processare;
 - _StoreResults_: funzione che va a creare l'oggetto da salvare su file, a partire dai risultati dei modelli, e chiama la funzione della _persistence logic_ per il salvataggio;
 - _UpdateBlueprint_: funzione che va ad aggiornare la _blueprint_ per _Data Automation_, in modo da modificare le istruzioni per specificare la lingua di _output_ scelta;
-- _InvokeBDA_: funzione che va a chiamate l'_API_ di _Data Automation_ con i due identificativi di S3 (URI) per _input_ e _output_ (Data Automation salva direttamente i risultati su S3, nell'URI specificato). Questa chiamata è asincrona, quindi per sapere quando poter ricavare il risultato salvato su S3 vado a fare _polling_ sullo stato della chiamata, controllando periodicamente fino a che non restituisce "_JobStatusSuccess_" o un errore;
+- _InvokeBDA_: funzione che va a chiamate l'_API_ di _Data Automation_ con i due identificativi di S3 (URI) per _input_ e _output_ #footnote[Data Automation salva direttamente i risultati su S3, nell'URI specificato]. Questa chiamata è asincrona, quindi per sapere quando poter ricavare il risultato salvato su S3 vado a fare _polling_ sullo stato della chiamata, controllando periodicamente fino a che non restituisce "_JobStatusSuccess_" o un errore;
 - _GetS3Object_: funzione che va ad utilizzare l'_API_ di _S3_ per ottenere un oggetto salvato in base al suo identificativo (URI). Questa funzione viene utilizzata sia per ottenere il file di _input_ da processare nel caso dei modelli di _Bedrock_ (tranne Nova Pro), sia per ottenere il file di _output_ generato da _Data Automation_;
 - _StoreS3Result_: funzione che va a creare l'oggetto da salvare su file, a partire dal risultato di _Data Automation_ salvato su S3, e chiama la funzione della _persistence logic_ per il salvataggio.
 \
@@ -178,7 +178,7 @@ Per la valutazione degli attributi mi sono basato su questi aspetti:
 - descrizione → ho guardato quale fosse la più generale e completa, senza errori e che non sembrasse palesemente generata da un modello. Inoltre ho penalizzato le descrizioni troppo lunghe, con tanti dettagli e con una struttura della frase non comune.
 
 ==== Risultati
-La valutazione soggettiva è stata fatta una prima volta con un _top-P_ alto (0.9) e una seconda volta con un _top-P_ basso (0.3). \ Dopo alcune prove con _top-P_ a 0.3, ho notato come i risultati dei modelli Claude Sonnet 3.7 e Pixtral Large non cambiassero in modo significativo, mentre Nova Pro sembrava modificare il lessico e semplificare le _keyword_, quindi ho deciso di rivalutare solamente i risultati di quest'ulti mo e confrontarli con quelli della prima valutazione. \
+La valutazione soggettiva è stata fatta una prima volta con un _top-P_ alto (0.9) e una seconda volta con un _top-P_ basso (0.3). \ Dopo alcune prove con _top-P_ a 0.3, ho notato come i risultati dei modelli Claude Sonnet 3.7 e Pixtral Large non cambiassero in modo significativo, mentre Nova Pro sembrava modificare il lessico e semplificare le _keyword_, quindi ho deciso di rivalutare solamente i risultati di quest'ultimo e confrontarli con quelli della prima valutazione. \
 \
 I punteggi finali ottenuti sono: \
 \
@@ -305,7 +305,7 @@ Da questa analisi è chiaro come il servizio meno costoso è _Data Automation_ i
 ==== Considerazioni
 - *Claude 3.7 Sonnet*:
   - migliore quando si tratta di intuire oggetti o scritte non complete, nonostante i parametri lo limitino in ciò;
-  - solitamente non si sbilancia nell'identificare il sesso o la nazionalità (difetto);
+  - solitamente non si sbilancia nell'identificare il sesso o la nazionalità di una persona (difetto);
   - descrizioni troppo lunghe e precise (risolvibile modificando il _prompt_);
 - *Nova Pro*:
   - molto economico e veloce;
@@ -354,7 +354,7 @@ _Data Automation_ si è rilevato migliore nel compito di generare una lista di _
 
 ==== Analisi
 Premesse: 
-- i tempi mostrati nella tabella sottostante sono quelli di durata dei video e risposta dei servizi in secondi;
+- i tempi mostrati nella tabella sottostante sono quelli di durata dei video e risposta dei servizi convertiti in secondi;
 - riguardo i costi, sono riportati quelli relativi a Nova Pro (approssimativi) in centesimi di dollaro, e quelli di _Data Automation_, il quale ha un costo costante di \$0.084/min (quindi 8.4/min per confronto, mi baso sul fatto che se il video dura meno di un minuto il costo rimane quello del minuto intero).
 \
 #pad(left: -1in, right: -1in)[
@@ -437,7 +437,7 @@ Premesse:
 \
 La tabella mostra come _Bedrock Data Automation_ è molto più costoso rispetto a Nova Pro (5x circa, per i video lunghi), e anche come tempi di risposta è molto più lento → _Data Automation_ ha generato la risposta ad un video da 47 secondi in 73 secondi, mentre Nova Pro nello stesso tempo (70 secondi) ha generato la risposta al video da 13 minuti (\"The BEST Beauty Products\"). \
 \
-In generale, come si nota dal grafico, le tempistiche non mostrano un qualche tipo di relazione chiara, quindi non si può dedurre con precisione i tempi di risposta per un determinato video. Sicuramente, anche con questi poche prove, è ovvio come Nova Pro sia più veloce a generare la risposta rispetto a _Data Automation_.
+In generale, come si nota dal grafico, le tempistiche non mostrano un qualche tipo di relazione chiara, quindi non si può dedurre con precisione i tempi di risposta per un determinato video. Sicuramente, anche con queste poche prove, è ovvio come Nova Pro sia più veloce a generare la risposta rispetto a _Data Automation_.
 
 ==== Considerazioni
 - *Nova Pro*:
@@ -449,7 +449,7 @@ In generale, come si nota dal grafico, le tempistiche non mostrano un qualche ti
   - ha generato _keyword_ adatte al contesto del video e con particolari utili in ottica di utilizzo per la ricerca;
   - ha un costo \"elevato\" rispetto a Nova Pro e i tempi di risposta sono significativamente maggiori;
   - ha dei limiti sulle tipologie di file video in _input_ (MP4/MOV);
-  - attualmente ha alcuni problemi con i video che non sono riuscito a risolvere, come la questione della lingua (non genera/traduce risultati nella lingua specificata) e il limite di durata dei video (fino a 6 minuti sembra funzi  onare, ma con più di 13 va in errore, anche da console).
+  - attualmente ha alcuni problemi con i video che non sono riuscito a risolvere, come la questione della lingua (non genera/traduce risultati nella lingua specificata) e il limite di durata dei video (fino a 6 minuti sembra funzionare, ma con più di 13 va in errore, anche da console).
 \
 Come per le immagini, le _keyword_ relative allo stile e all’angolazione non le ho trovate utili per valutare un risultato rispetto ad un
 altro.
