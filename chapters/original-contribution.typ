@@ -13,3 +13,4 @@
 #include "research.typ"
 #include "evaluation.typ"
 #include "implementation.typ"
+#include "ideas.typ"

@@ -294,7 +294,7 @@ Premesse:
     ),
     [Chiamate API], [70], [113], [69], [22],
     [Costo medio (centesimi di dollaro)], [0.5], [0.2], [0.65], [0.5],
-    [Tempio medio (secondi)], [4], [2], [2], [22],
+    [Tempio medio], [4s], [2s], [2s], [22s],
     [Lunghezza media descrizione (parole)], [103], [60], [84], [54],
   ),
   caption: [Tabella analisi risultati immagini.]
@@ -365,17 +365,17 @@ Premesse:
       table.header(
         [*Video*], [*Durata*], [*Risposta \ Nova*], [*Risposta \ BDA*], [*Costo \ Nova*], [*Costo \ BDA*]
       ),
-      [4k_bag], [11], [5.3], [43], [0.3], [8.4],
-      [video_24SWTK67], [12], [2.8], [33], [0.35], [8.4],
-      [video_ceramic], [15], [3.1], [39], [0.4], [8.4],
-      [video_ceramic1], [15], [3.2], [38], [0.4], [8.4],
-      [lipoil_1x1_sito], [15], [4], [40], [0.4], [8.4],
-      [Video marmo campagna], [24], [4.6], [43], [0.6], [8.4],
-      [4k_hand_cream], [47], [16], [73], [1.25], [8.4],
-      [Camomilla_Franchising #footnote[in questo video i 3 minuti finali sono statici, rimane fisso su una scritta (per questo lo ho tagliato)]\ (tagliato)], [176 \ (2.56 min)], [25], [68], [4.7], [25.2],
-      [Camomilla_Franchising (Completo)], [352 \ (5.52 min)], [23], [62], [4.7], [50.4],
-      [The BEST Beauty Products], [781 \ (13.01 min)], [70], [Errore], [21], [109.2 (\$1.09)],
-      [videoplayback], [824 \ (13.44 min)], [65], [Errore], [22], [117.6 (\$1.18)]
+      [4k_bag], [11s], [5.3s], [43s], [0.3], [8.4],
+      [video_24SWTK67], [12s], [2.8s], [33s], [0.35], [8.4],
+      [video_ceramic], [15s], [3.1s], [39s], [0.4], [8.4],
+      [video_ceramic1], [15s], [3.2s], [38s], [0.4], [8.4],
+      [lipoil_1x1_sito], [15s], [4s], [40s], [0.4], [8.4],
+      [Video marmo campagna], [24s], [4.6s], [43s], [0.6], [8.4],
+      [4k_hand_cream], [47s], [16s], [73s], [1.25], [8.4],
+      [Camomilla_Franchising #footnote[in questo video i 3 minuti finali sono statici, rimane fisso su una scritta (per questo lo ho tagliato)]\ (tagliato)], [176s \ (2.56 min)], [25s], [68s], [4.7], [25.2],
+      [Camomilla_Franchising (Completo)], [352s \ (5.52 min)], [23s], [62s], [4.7], [50.4],
+      [The BEST Beauty Products], [781s \ (13.01 min)], [70s], [Errore], [21], [109.2 (\$1.09)],
+      [videoplayback], [824s \ (13.44 min)], [65s], [Errore], [22], [117.6 (\$1.18)]
     ),
     caption: [Tabella analisi risultati video.]
   )
@@ -388,16 +388,7 @@ Premesse:
     import cetz-plot: plot
 
     let xlabels = (
-        (1, [12s]),
-        (2, [15s]),
-        (3, [15s]),
-        (4, [15s]),
-        (5, [24s]),
-        (6, [47s]),
-        (7, [176s]),
-        (8, [352s]),
-        (9, [781s]),
-        (10, [824s]),
+        (1, [11s]), (2, [12s]), (3, [15s]), (4, [15s]), (5, [15s]), (6, [24s]), (7, [47s]), (8, [176s]), (9, [352s]), (10, [781s]), (11, [824s])
     )
     let ylabels = (
       (8, [8s]),
@@ -421,19 +412,19 @@ Premesse:
       x-ticks: xlabels,
       y-ticks: ylabels,
       x-min: 0.5,
-      x-max: 10.5,
+      x-max: 11.5,
       y-min: 0,
       legend: (0, -0.8),
       y-grid: true,
       {
         plot.add(
-          ((1, 2.8), (2, 3.1), (3, 3.2), (4, 4), (5, 4.6), (6, 16), (7, 25), (8, 23), (9, 70), (10, 65)),
+          ((1, 5.3), (2, 2.8), (3, 3.1), (4, 3.2), (5, 4), (6, 4.6), (7, 16), (8, 25), (9, 23), (10, 70), (11, 65)),
           mark: "o",
           line: "spline",
           label: [Nova]
         )
         plot.add(
-          ((1, 33), (2, 39), (3, 38), (4, 40), (5, 43), (6, 73), (7, 68), (8, 62)),
+          ((1, 43), (2, 33), (3, 39), (4, 38), (5, 40), (6, 43), (7, 73), (8, 68), (9, 62)),
           mark: "o",
           line: "spline",
           label: [BDA]
@@ -462,4 +453,6 @@ In generale, come si nota dal grafico, le tempistiche non mostrano un qualche ti
 \
 Come per le immagini, le _keyword_ relative allo stile e all’angolazione non le ho trovate utili per valutare un risultato rispetto ad un
 altro.
-\
+
+=== Scelta finale
+In base al confronto dei servizi effettuato, ai risultati ottenuti dalle immagini, e in particolar modo ai problemi avuti con i video, la scelta finale del servizio è stata quella di utilizzare i _Visual Language Models_ di _Bedrock_ nell'implementazione dell'_API_.
