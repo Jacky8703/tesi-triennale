@@ -1,4 +1,4 @@
-== Idee
+== Idee <final-ideas>
 Terminato il progetto, ho riportato in un documento di relazione richiesto dall'azienda, alcune idee che non sono riuscito a implementare, principalmente per mancanza di tempo, ma che potrebbero essere utili per migliorare l'_API_ e il servizio in generale. \
 Le idee sono: \
 \
